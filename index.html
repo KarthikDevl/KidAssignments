@@ -1,661 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Math Mountain App</title>
-  <style>
-    :root {
-      --color-background: #fcfcf9;
-      --color-surface: #fffdfd;
-      --color-text: #13343b;
-      --color-primary: #21808d;
-      --color-primary-hover: #1d7480;
-      --color-success: #21808d;
-      --color-error: #c0152f;
-      --radius-lg: 12px;
-      --radius-base: 8px;
-      --font-size-base: 14px;
-      --font-size-xl: 18px;
-      --font-family: "Inter", "FKGroteskNeue", Arial, sans-serif;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: var(--font-family);
-      background: var(--color-background);
-      color: var(--color-text);
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 20px auto;
-      background: var(--color-surface);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 1px 4px rgba(33,128,141,0.08);
-      padding: 28px 22px 20px 22px;
-    }
-    h1 {
-      margin: 0 0 14px 0;
-      font-size: var(--font-size-xl);
-      text-align: center;
-    }
-    .controls {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .controls label {
-      font-weight: 500;
-    }
-    .controls select {
-      padding: 6px 10px;
-      border-radius: var(--radius-base);
-      border: 2px solid #ccc;
-      font-size: 14px;
-    }
-    .problems-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-    .problem-card {
-      background: var(--color-background);
-      border: 2px solid transparent;
-      border-radius: var(--radius-base);
-      padding: 12px 8px;
-      text-align: center;
-      position: relative;
-    }
-    .problem-card.correct {
-      border-color: var(--color-success);
-      background: rgba(33,128,141,0.08);
-    }
-    .problem-card.incorrect {
-      border-color: var(--color-error);
-      background: rgba(192,21,47,0.08);
-    }
-    .animal-container {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 10px auto;
-    }
-    .animal-shape {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    /* Cat */
-    .animal-cat {
-      background: linear-gradient(135deg, #FFB347 0%, #FF8C42 100%);
-      border-radius: 45% 45% 40% 40%;
-      position: relative;
-    }
-    .animal-cat::before,
-    .animal-cat::after {
-      content: '';
-      position: absolute;
-      top: -15px;
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 30px solid #FF8C42;
-    }
-    .animal-cat::before {
-      left: 10px;
-      transform: rotate(-15deg);
-    }
-    .animal-cat::after {
-      right: 10px;
-      transform: rotate(15deg);
-    }
-    /* Dog */
-    .animal-dog {
-      background: linear-gradient(135deg, #A0522D 0%, #8B4513 100%);
-      border-radius: 50% 50% 45% 45%;
-      position: relative;
-    }
-    .animal-dog::before,
-    .animal-dog::after {
-      content: '';
-      position: absolute;
-      top: 5px;
-      width: 35px;
-      height: 50px;
-      background: #8B4513;
-      border-radius: 50% 50% 20% 20%;
-    }
-    .animal-dog::before {
-      left: -20px;
-      transform: rotate(-30deg);
-    }
-    .animal-dog::after {
-      right: -20px;
-      transform: rotate(30deg);
-    }
-    /* Bear */
-    .animal-bear {
-      background: linear-gradient(135deg, #D2691E 0%, #A0522D 100%);
-      border-radius: 45%;
-      position: relative;
-    }
-    .animal-bear::before,
-    .animal-bear::after {
-      content: '';
-      position: absolute;
-      top: -8px;
-      width: 28px;
-      height: 28px;
-      background: #A0522D;
-      border-radius: 50%;
-    }
-    .animal-bear::before {
-      left: 10px;
-    }
-    .animal-bear::after {
-      right: 10px;
-    }
-    /* Rabbit */
-    .animal-rabbit {
-      background: linear-gradient(135deg, #E6E6FA 0%, #D8BFD8 100%);
-      border-radius: 40% 40% 50% 50%;
-      position: relative;
-    }
-    .animal-rabbit::before,
-    .animal-rabbit::after {
-      content: '';
-      position: absolute;
-      top: -40px;
-      width: 18px;
-      height: 55px;
-      background: #D8BFD8;
-      border-radius: 50% 50% 20% 20%;
-    }
-    .animal-rabbit::before {
-      left: 25px;
-      transform: rotate(-10deg);
-    }
-    .animal-rabbit::after {
-      right: 25px;
-      transform: rotate(10deg);
-    }
-    /* Frog */
-    .animal-frog {
-      background: linear-gradient(135deg, #90EE90 0%, #6B8E23 100%);
-      border-radius: 50% 50% 45% 45%;
-      position: relative;
-    }
-    .animal-frog::before,
-    .animal-frog::after {
-      content: '';
-      position: absolute;
-      top: 8px;
-      width: 22px;
-      height: 22px;
-      background: #FFFACD;
-      border-radius: 50%;
-      border: 2px solid #6B8E23;
-    }
-    .animal-frog::before {
-      left: 15px;
-    }
-    .animal-frog::after {
-      right: 15px;
-    }
-    /* Owl */
-    .animal-owl {
-      background: linear-gradient(135deg, #8B7355 0%, #654321 100%);
-      border-radius: 45% 45% 40% 40%;
-      position: relative;
-    }
-    .animal-owl::before,
-    .animal-owl::after {
-      content: '';
-      position: absolute;
-      top: 20px;
-      width: 18px;
-      height: 18px;
-      background: #FFFACD;
-      border-radius: 50%;
-      border: 3px solid #333;
-    }
-    .animal-owl::before {
-      left: 20px;
-    }
-    .animal-owl::after {
-      right: 20px;
-    }
-    /* Pig */
-    .animal-pig {
-      background: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 100%);
-      border-radius: 50%;
-      position: relative;
-    }
-    .animal-pig::before,
-    .animal-pig::after {
-      content: '';
-      position: absolute;
-      top: 10px;
-      width: 25px;
-      height: 20px;
-      background: #FFB6C1;
-      border-radius: 50% 50% 0 0;
-    }
-    .animal-pig::before {
-      left: 5px;
-      transform: rotate(-30deg);
-    }
-    .animal-pig::after {
-      right: 5px;
-      transform: rotate(30deg);
-    }
-    /* Monkey */
-    .animal-monkey {
-      background: linear-gradient(135deg, #D2B48C 0%, #BC8F8F 100%);
-      border-radius: 50%;
-      position: relative;
-    }
-    .animal-monkey::before,
-    .animal-monkey::after {
-      content: '';
-      position: absolute;
-      top: 15px;
-      width: 30px;
-      height: 30px;
-      background: #F5DEB3;
-      border-radius: 50%;
-    }
-    .animal-monkey::before {
-      left: -15px;
-    }
-    .animal-monkey::after {
-      right: -15px;
-    }
-
-    }
-    .animal-content {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      width: 80%;
-    }
-    .problem-num {
-      font-size: 11px;
-      color: #21808d;
-      margin-bottom: 6px;
-    }
-    .math-mountain {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .mountain {
-      width: 90px;
-      height: 54px;
-      position: relative;
-      margin: 0 auto 6px auto;
-      background:
-        linear-gradient(135deg, #e6e6e6 0%, #fedcc7 50%, #fcfcf9 100%);
-      border-radius: 0 0 60px 60px / 0 0 80px 80px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-    }
-    .top-number {
-      position: absolute;
-      top: 4px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 18px;
-      font-weight: bold;
-      background: #e6e6e6;
-      border-radius: var(--radius-base);
-      min-width: 32px;
-      text-align: center;
-      padding: 3px 0;
-      border: 1px solid #21808d22;
-    }
-    .bottom-row {
-      position: absolute;
-      bottom: -14px;
-      left: 50%;
-      display: flex;
-      flex-direction: row;
-      gap: 12px;
-      transform: translateX(-50%);
-    }
-    .partner-box {
-      width: 32px;
-      height: 32px;
-      background: #fff;
-      border: 2px solid #21808d22;
-      border-radius: var(--radius-base);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      font-weight: 500;
-    }
-    .input-missing {
-      border: 2px solid var(--color-primary);
-      box-shadow: 0 1px 4px rgba(33,128,141,0.09);
-      padding: 0;
-    }
-    .input-missing input {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: transparent;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 500;
-    }
-    .input-missing input:focus {
-      outline: none;
-    }
-    input[type="number"] {
-      font-size: 14px;
-      padding: 6px;
-      border: 2px solid #ccc;
-      border-radius: var(--radius-base);
-      width: 50px;
-      text-align: center;
-    }
-    .btn-check {
-      background: var(--color-primary);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-base);
-      padding: 10px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-      font-weight: 500;
-    }
-    .btn-check:hover {
-      background: var(--color-primary-hover);
-    }
-    .btn-secondary {
-      background: #fedcc7;
-      color: #21808d;
-      border: none;
-      border-radius: var(--radius-base);
-      padding: 10px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .btn-secondary:hover {
-      background: #ffe3d1;
-    }
-    .action-buttons {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    .score-bar {
-      margin: 0 auto 16px auto;
-      font-size: 16px;
-      text-align: center;
-      letter-spacing: 0.01em;
-      font-weight: 500;
-      color: var(--color-primary);
-    }
-    .results-summary {
-      text-align: center;
-      margin: 20px auto;
-      background: #fffdfd;
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      font-size: 17px;
-      color: var(--color-primary);
-      border: 2px solid #fedcc7;
-    }
-    .tips {
-      margin-top: 32px;
-      font-size: 13px;
-      background: #fcfcf9;
-      border: 1px dashed #21808d44;
-      border-radius: var(--radius-base);
-      padding: 16px 13px;
-      color: #13343b;
-    }
-    @media (max-width: 768px) {
-      .container {
-        max-width: 98vw;
-        padding: 14px 4vw;
-      }
-      .problems-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 12px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Mountain Adventure! 🏔️</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Math Mountain Practice - 100 Problems</h1>
-    
-    <div class="controls">
-      <label for="complexity">Complexity:</label>
-      <select id="complexity">
-        <option value="low">Low (1 digit, sums up to 18)</option>
-        <option value="medium">Medium (2 digits, sums up to 99)</option>
-        <option value="high">High (3-4 digits, sums up to 9999)</option>
-      </select>
-      
-      <label for="numProblems">Number of Problems:</label>
-      <input type="number" id="numProblems" min="10" max="50" value="25" style="width:60px;" />
-      
-      <button class="btn-secondary" id="newProblemsBtn2">Generate New Problems</button>
-    </div>
-
-    <div class="score-bar" id="scoreBar">Score: 0 / 25</div>
-
-    <div class="problems-grid" id="problemsGrid"></div>
-
-    <div class="action-buttons">
-      <button class="btn-check" id="checkBtn">Check All Answers</button>
-      <button class="btn-secondary" id="newProblemsBtn">Generate New Problems</button>
-    </div>
-
-    <div class="results-summary" id="resultsSummary" style="display:none;"></div>
-
-    <div class="tips">
-      <strong>How to Play:</strong> Fill in all the missing numbers in the Math Mountains. Click "Check All Answers" to see your score. Use "Generate New Problems" to create a new set at your chosen complexity level.
-    </div>
-  </div>
-  <script>
-    // App State
-    let problems = [];
-    let currentComplexity = 'low';
-    let numProblems = 25;
-
-    // DOM Elements
-    const problemsGrid = document.getElementById('problemsGrid');
-    const scoreBar = document.getElementById('scoreBar');
-    const checkBtn = document.getElementById('checkBtn');
-    const newProblemsBtn = document.getElementById('newProblemsBtn');
-    const newProblemsBtn2 = document.getElementById('newProblemsBtn2');
-    const complexitySelect = document.getElementById('complexity');
-    const numProblemsInput = document.getElementById('numProblems');
-    const resultsSummary = document.getElementById('resultsSummary');
-
-    // Generate random number based on complexity
-    function getRandomNumber(complexity) {
-      if (complexity === 'low') {
-        return Math.floor(Math.random() * 9) + 1; // 1-9
-      } else if (complexity === 'medium') {
-        return Math.floor(Math.random() * 90) + 10; // 10-99
-      } else { // high
-        return Math.floor(Math.random() * 9000) + 100; // 100-9999
-      }
-    }
-
-    // Generate a single problem
-    function generateProblem(idx, complexity) {
-      const problemTypes = ['find_p1', 'find_p2', 'find_total'];
-      const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
-      
-      let p1, p2, total, missing, answer;
-      
-      if (type === 'find_total') {
-        p1 = getRandomNumber(complexity);
-        p2 = getRandomNumber(complexity);
-        total = p1 + p2;
-        missing = 'total';
-        answer = total;
-      } else if (type === 'find_p2') {
-        p1 = getRandomNumber(complexity);
-        p2 = getRandomNumber(complexity);
-        total = p1 + p2;
-        missing = 'p2';
-        answer = p2;
-      } else { // find_p1
-        p1 = getRandomNumber(complexity);
-        p2 = getRandomNumber(complexity);
-        total = p1 + p2;
-        missing = 'p1';
-        answer = p1;
-      }
-
-      return {
-        idx,
-        type,
-        total: missing === 'total' ? null : total,
-        p1: missing === 'p1' ? null : p1,
-        p2: missing === 'p2' ? null : p2,
-        missing,
-        answer,
-        userAnswer: null,
-        checked: false
-      };
-    }
-
-    // Generate problems based on numProblems setting
-    function generateAllProblems(complexity, count) {
-      problems = [];
-      for (let i = 0; i < count; i++) {
-        problems.push(generateProblem(i, complexity));
-      }
-      renderProblems();
-      resultsSummary.style.display = 'none';
-      scoreBar.textContent = `Score: 0 / ${count}`;
-    }
-
-    // Render all problems as cards
-    function renderProblems() {
-      problemsGrid.innerHTML = '';
-      
-      problems.forEach((prob, idx) => {
-        const card = document.createElement('div');
-        card.className = 'problem-card';
-        if (prob.checked) {
-          card.className += prob.userAnswer === prob.answer ? ' correct' : ' incorrect';
-        }
-
-        const topVal = prob.missing === 'total' ? '?' : prob.total;
-        const p1Val = prob.missing === 'p1' ? '' : prob.p1;
-        const p2Val = prob.missing === 'p2' ? '' : prob.p2;
-
-        // Use userAnswer if available to preserve values after checking
-        const userP1 = prob.userAnswer !== null && prob.missing === 'p1' ? prob.userAnswer : '';
-        const userP2 = prob.userAnswer !== null && prob.missing === 'p2' ? prob.userAnswer : '';
-        const userTotal = prob.userAnswer !== null && prob.missing === 'total' ? prob.userAnswer : '';
-
-        // Pick a random animal shape
-        const animals = ['cat', 'dog', 'bear', 'rabbit', 'frog', 'owl', 'pig', 'monkey'];
-        const animalType = animals[idx % animals.length];
-        
-        card.innerHTML = `
-          <div class="problem-num">#${idx + 1}</div>
-          <div class="animal-container">
-            <div class="animal-shape animal-${animalType}">
-              <div class="animal-content">
-                <div class="math-mountain">
-                  <div class="mountain">
-                    <div class="top-number">${topVal}</div>
-                    <div class="bottom-row">
-                      <div class="partner-box${prob.missing === 'p1' ? ' input-missing' : ''}">
-                        ${prob.missing === 'p1' ? `<input type="number" data-idx="${idx}" data-type="p1" value="${userP1}" />` : p1Val}
-                      </div>
-                      <div class="partner-box${prob.missing === 'p2' ? ' input-missing' : ''}">
-                        ${prob.missing === 'p2' ? `<input type="number" data-idx="${idx}" data-type="p2" value="${userP2}" />` : p2Val}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+    <div class="app-wrapper">
+        <!-- Session History Sidebar -->
+        <aside class="history-sidebar">
+            <div class="sidebar-header">
+                <h2>📊 Session History</h2>
+                <button id="clear-history" class="btn-clear-history" title="Clear All History">🗑️</button>
             </div>
-          </div>
-          ${prob.missing === 'total' ? `<input type="number" data-idx="${idx}" data-type="total" value="${userTotal}" style="margin-top:8px;" />` : ''}
-        `;
+            <div id="history-list" class="history-list">
+                <p class="no-history">No tests taken yet. Complete a test to see it here!</p>
+            </div>
+        </aside>
 
-        problemsGrid.appendChild(card);
-      });
-    }
+        <!-- Main Content -->
+        <div class="container">
+            <header>
+                <h1>🏔️ Math Mountain Adventure! 🏔️</h1>
+                <p class="subtitle">Climb to the top by solving all the problems!</p>
+            </header>
 
-    // Check all answers
-    function checkAllAnswers() {
-      const inputs = document.querySelectorAll('input[data-idx]');
-      
-      inputs.forEach(input => {
-        const idx = parseInt(input.dataset.idx);
-        const userAns = parseInt(input.value) || 0;
-        problems[idx].userAnswer = userAns;
-        problems[idx].checked = true;
-      });
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="mountains">🏔️ Math Mountains</button>
+                <button class="tab-button" data-tab="word-problems">📖 Word Problems</button>
+            </div>
 
-      renderProblems();
-      
-      const correct = problems.filter(p => p.userAnswer === p.answer).length;
-      const total = problems.length;
-      scoreBar.textContent = `Score: ${correct} / ${total}`;
-      
-      resultsSummary.innerHTML = `
-        <h2>Results</h2>
-        <p>You got <strong>${correct}</strong> out of <strong>${total}</strong> correct!</p>
-        <p>${correct >= 90 ? 'Excellent work! 🌟' : correct >= 70 ? 'Great job! Keep practicing! 👍' : 'Good effort! Try again to improve! 💪'}</p>
-      `;
-      resultsSummary.style.display = 'block';
-    }
+        <!-- Math Mountains Tab -->
+        <div id="mountains-tab" class="tab-content active">
+        <!-- Top Controls -->
+        <div class="controls-panel top-controls">
+            <div class="control-group">
+                <label for="difficulty-top">Difficulty Level:</label>
+                <select id="difficulty-top" class="difficulty-select">
+                    <option value="low">🐛 Low (1 digit)</option>
+                    <option value="medium" selected>🐸 Medium (2 digits)</option>
+                    <option value="high">🦁 High (3-4 digits)</option>
+                </select>
+            </div>
 
-    // Event Listeners
-    checkBtn.addEventListener('click', checkAllAnswers);
-    
-    function handleGenerateNew() {
-      currentComplexity = complexitySelect.value;
-      numProblems = parseInt(numProblemsInput.value) || 25;
-      if (numProblems < 10) numProblems = 10;
-      if (numProblems > 50) numProblems = 50;
-      numProblemsInput.value = numProblems;
-      generateAllProblems(currentComplexity, numProblems);
-    }
-    
-    newProblemsBtn.addEventListener('click', handleGenerateNew);
-    newProblemsBtn2.addEventListener('click', handleGenerateNew);
+            <div class="control-group">
+                <label for="problem-count-top">Number of Problems:</label>
+                <input type="number" id="problem-count-top" class="problem-count-input" 
+                       min="10" max="50" value="10">
+            </div>
 
-    complexitySelect.addEventListener('change', () => {
-      currentComplexity = complexitySelect.value;
-      numProblems = parseInt(numProblemsInput.value) || 25;
-      generateAllProblems(currentComplexity, numProblems);
-    });
+            <button id="generate-top" class="btn btn-generate">🎲 Generate New Problems</button>
+        </div>
 
-    // Initial load
-    generateAllProblems('low', 25);
-  </script>
+        <!-- Problems Grid -->
+        <div id="problems-container" class="problems-grid">
+            <!-- Problems will be dynamically inserted here -->
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="controls-panel bottom-controls">
+            <div class="control-group">
+                <label for="difficulty-bottom">Difficulty Level:</label>
+                <select id="difficulty-bottom" class="difficulty-select">
+                    <option value="low">🐛 Low (1 digit)</option>
+                    <option value="medium" selected>🐸 Medium (2 digits)</option>
+                    <option value="high">🦁 High (3-4 digits)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="problem-count-bottom">Number of Problems:</label>
+                <input type="number" id="problem-count-bottom" class="problem-count-input" 
+                       min="10" max="50" value="10">
+            </div>
+
+            <button id="generate-bottom" class="btn btn-generate">🎲 Generate New Problems</button>
+            <button id="check-answers" class="btn btn-check">✅ Check My Answers!</button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results-section hidden">
+            <h2 id="results-message"></h2>
+            <div id="results-details"></div>
+        </div>
+        </div>
+        <!-- End Math Mountains Tab -->
+
+        <!-- Word Problems Tab -->
+        <div id="word-problems-tab" class="tab-content">
+            <!-- Word Problem Controls -->
+            <div class="controls-panel top-controls">
+                <div class="control-group">
+                    <label for="wp-difficulty">Difficulty Level:</label>
+                    <select id="wp-difficulty" class="difficulty-select">
+                        <option value="easy">😊 Easy</option>
+                        <option value="medium" selected>🤔 Medium</option>
+                        <option value="hard">🧠 Hard</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="wp-count">Number of Problems:</label>
+                    <input type="number" id="wp-count" class="problem-count-input" 
+                           min="1" max="20" value="5">
+                </div>
+
+                <button id="generate-word-problems" class="btn btn-generate">🎲 Generate Word Problems</button>
+            </div>
+
+            <!-- Word Problems Container -->
+            <div id="word-problems-container" class="word-problems-grid">
+                <!-- Word problems will be dynamically inserted here -->
+            </div>
+
+            <!-- Word Problems Controls Bottom -->
+            <div class="controls-panel bottom-controls">
+                <button id="check-word-problems" class="btn btn-check">✅ Check My Answers!</button>
+            </div>
+
+            <!-- Word Problems Results -->
+            <div id="wp-results" class="results-section hidden">
+                <h2 id="wp-results-message"></h2>
+                <div id="wp-results-details"></div>
+            </div>
+        </div>
+        <!-- End Word Problems Tab -->
+        </div>
+        <!-- End Main Content -->
+    </div>
+    <!-- End App Wrapper -->
+
+    <script src="script.js"></script>
 </body>
 </html>
