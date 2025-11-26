@@ -10,6 +10,20 @@ class MathMountainApp {
         this.sessionHistory = [];
         this.currentSession = null;
         this.viewingHistory = false;
+        
+        // Tracing variables
+        this.tracingMode = 'letters';
+        this.currentTracingIndex = 0;
+        this.tracingItems = [];
+        this.tracingScores = [];
+        this.canvas = null;
+        this.ctx = null;
+        this.isDrawing = false;
+        this.tracingPath = [];
+        this.letterPaths = {};
+        this.countingComplete = false;
+        this.countedObjects = 0;
+        
         this.loadHistory();
         this.init();
     }
@@ -39,6 +53,18 @@ class MathMountainApp {
         
         // History event listeners
         document.getElementById('clear-history').addEventListener('click', () => this.clearHistory());
+        
+        // Tracing event listeners
+        document.getElementById('start-tracing').addEventListener('click', () => this.startTracing());
+        document.getElementById('next-tracing').addEventListener('click', () => this.nextTracing());
+        document.getElementById('clear-trace').addEventListener('click', () => this.clearCanvas());
+        document.getElementById('restart-tracing').addEventListener('click', () => this.startTracing());
+        document.getElementById('tracing-mode').addEventListener('change', (e) => {
+            this.tracingMode = e.target.value;
+        });
+        
+        // Initialize canvas
+        this.initCanvas();
         
         // Render history
         this.renderHistory();
@@ -564,6 +590,395 @@ class MathMountainApp {
         
         resultsSection.classList.remove('hidden');
         resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Tracing Methods
+    initCanvas() {
+        this.canvas = document.getElementById('tracing-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        // Mouse events
+        this.canvas.addEventListener('mousedown', (e) => this.startDrawing(e));
+        this.canvas.addEventListener('mousemove', (e) => this.draw(e));
+        this.canvas.addEventListener('mouseup', () => this.stopDrawing());
+        this.canvas.addEventListener('mouseout', () => this.stopDrawing());
+        
+        // Touch events for mobile
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.startDrawing(e.touches[0]);
+        });
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            this.draw(e.touches[0]);
+        });
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.stopDrawing();
+        });
+    }
+
+    startTracing() {
+        this.tracingMode = document.getElementById('tracing-mode').value;
+        this.currentTracingIndex = 0;
+        this.tracingScores = [];
+        
+        if (this.tracingMode === 'letters') {
+            this.tracingItems = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        } else {
+            this.tracingItems = '0123456789'.split('');
+        }
+        
+        document.getElementById('tracing-results').classList.add('hidden');
+        document.getElementById('start-tracing').style.display = 'none';
+        document.getElementById('next-tracing').style.display = 'inline-block';
+        
+        this.loadTracingItem();
+    }
+
+    loadTracingItem() {
+        if (this.currentTracingIndex >= this.tracingItems.length) {
+            this.showTracingResults();
+            return;
+        }
+        
+        const item = this.tracingItems[this.currentTracingIndex];
+        this.countingComplete = false;
+        this.countedObjects = 0;
+        
+        document.getElementById('current-letter').textContent = item;
+        document.getElementById('tracing-counter').textContent = 
+            `${this.tracingMode === 'letters' ? 'Letter' : 'Number'} ${this.currentTracingIndex + 1} of ${this.tracingItems.length}`;
+        document.getElementById('tracing-score').textContent = 'Score: 0%';
+        document.getElementById('tracing-feedback').textContent = '';
+        document.getElementById('tracing-feedback').className = 'tracing-feedback';
+        
+        // Hide stars for new item
+        const starRating = document.getElementById('star-rating');
+        starRating.classList.add('hidden');
+        document.querySelectorAll('.star').forEach(star => {
+            star.classList.remove('earned');
+        });
+        
+        // Clear picture content first
+        document.querySelector('.picture-emoji').textContent = '';
+        document.querySelector('.picture-label').textContent = '';
+        
+        // Show picture for letters or counting for numbers
+        if (this.tracingMode === 'letters') {
+            document.getElementById('tracing-picture').style.display = 'block';
+            document.getElementById('counting-area').style.display = 'none';
+            this.showPictureForLetter(item);
+        } else {
+            document.getElementById('tracing-picture').style.display = 'none';
+            document.getElementById('counting-area').style.display = 'block';
+            this.setupCounting(item);
+        }
+        
+        this.clearCanvas();
+        this.drawLetterGuide(item);
+    }
+
+    showPictureForLetter(letter) {
+        const letterData = {
+            'A': { emoji: '🍎', label: 'Apple' },
+            'B': { emoji: '🐻', label: 'Bear' },
+            'C': { emoji: '🐱', label: 'Cat' },
+            'D': { emoji: '🐶', label: 'Dog' },
+            'E': { emoji: '🐘', label: 'Elephant' },
+            'F': { emoji: '🐸', label: 'Frog' },
+            'G': { emoji: '🦒', label: 'Giraffe' },
+            'H': { emoji: '🐴', label: 'Horse' },
+            'I': { emoji: '🍦', label: 'Ice Cream' },
+            'J': { emoji: '🕹️', label: 'Joystick' },
+            'K': { emoji: '🔑', label: 'Key' },
+            'L': { emoji: '🦁', label: 'Lion' },
+            'M': { emoji: '🐵', label: 'Monkey' },
+            'N': { emoji: '🥜', label: 'Nut' },
+            'O': { emoji: '🦉', label: 'Owl' },
+            'P': { emoji: '🐼', label: 'Panda' },
+            'Q': { emoji: '👸', label: 'Queen' },
+            'R': { emoji: '🌈', label: 'Rainbow' },
+            'S': { emoji: '⭐', label: 'Star' },
+            'T': { emoji: '🐯', label: 'Tiger' },
+            'U': { emoji: '☂️', label: 'Umbrella' },
+            'V': { emoji: '🎻', label: 'Violin' },
+            'W': { emoji: '🍉', label: 'Watermelon' },
+            'X': { emoji: '❌', label: 'X-mark' },
+            'Y': { emoji: '🧶', label: 'Yarn' },
+            'Z': { emoji: '🦓', label: 'Zebra' }
+        };
+        
+        const data = letterData[letter] || { emoji: '❓', label: 'Unknown' };
+        document.querySelector('.picture-emoji').textContent = data.emoji;
+        document.querySelector('.picture-label').textContent = data.label;
+    }
+
+    setupCounting(number) {
+        const count = parseInt(number);
+        document.getElementById('count-target').textContent = count;
+        document.getElementById('counting-feedback').textContent = '';
+        
+        const emojis = ['🌟', '🎈', '🎁', '🍭', '🎨', '🎵', '⚽', '🎪', '🎯', '🎲'];
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+        
+        const container = document.getElementById('counting-objects');
+        container.innerHTML = '';
+        
+        // Special case for zero
+        if (count === 0) {
+            document.getElementById('counting-feedback').textContent = '🎉 Zero means no objects! Nothing to count! 🎉';
+            this.countingComplete = true;
+            return;
+        }
+        
+        // Create count number of objects
+        for (let i = 0; i < count; i++) {
+            const obj = document.createElement('div');
+            obj.className = 'counting-object';
+            obj.textContent = emoji;
+            obj.dataset.index = i;
+            obj.addEventListener('click', () => this.countObject(obj));
+            container.appendChild(obj);
+        }
+    }
+
+    countObject(obj) {
+        if (obj.classList.contains('counted')) return;
+        
+        obj.classList.add('counted');
+        this.countedObjects++;
+        
+        const target = parseInt(document.getElementById('count-target').textContent);
+        const feedback = document.getElementById('counting-feedback');
+        
+        if (this.countedObjects === target) {
+            feedback.textContent = '🎉 Perfect! You counted them all! 🎉';
+            this.countingComplete = true;
+        } else {
+            feedback.textContent = `${this.countedObjects} of ${target}`;
+        }
+    }
+
+    drawLetterGuide(letter) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw guide letter in light gray
+        this.ctx.font = 'bold 300px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.strokeStyle = '#dfe6e9';
+        this.ctx.lineWidth = 8;
+        this.ctx.strokeText(letter, this.canvas.width / 2, this.canvas.height / 2);
+        
+        // Draw dotted outline for tracing
+        this.ctx.strokeStyle = '#6c5ce7';
+        this.ctx.lineWidth = 4;
+        this.ctx.setLineDash([10, 10]);
+        this.ctx.strokeText(letter, this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.setLineDash([]);
+    }
+
+    startDrawing(e) {
+        this.isDrawing = true;
+        this.tracingPath = [];
+        const rect = this.canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+        this.tracingPath.push({ x, y });
+    }
+
+    draw(e) {
+        if (!this.isDrawing) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+        
+        this.ctx.strokeStyle = '#ff6b6b';
+        this.ctx.lineWidth = 15;
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+        
+        if (this.tracingPath.length > 0) {
+            const last = this.tracingPath[this.tracingPath.length - 1];
+            this.ctx.beginPath();
+            this.ctx.moveTo(last.x, last.y);
+            this.ctx.lineTo(x, y);
+            this.ctx.stroke();
+        }
+        
+        this.tracingPath.push({ x, y });
+    }
+
+    stopDrawing() {
+        if (!this.isDrawing) return;
+        this.isDrawing = false;
+        
+        if (this.tracingPath.length > 10) {
+            this.evaluateTracing();
+        }
+    }
+
+    evaluateTracing() {
+        if (this.tracingPath.length < 10) {
+            return; // Not enough data to evaluate
+        }
+        
+        // Calculate score based on multiple factors
+        let score = 0;
+        
+        // Factor 1: Path length (30% of score)
+        const optimalLength = 100; // Optimal number of points
+        const lengthScore = Math.min(30, (this.tracingPath.length / optimalLength) * 30);
+        
+        // Factor 2: Proximity to center (70% of score)
+        // Check how close the path is to the center of the canvas where the letter is
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+        
+        let totalProximity = 0;
+        let pointsInBounds = 0;
+        
+        this.tracingPath.forEach(point => {
+            const distanceFromCenter = Math.sqrt(
+                Math.pow(point.x - centerX, 2) + 
+                Math.pow(point.y - centerY, 2)
+            );
+            
+            // Points within reasonable bounds of the letter (40% of canvas from center)
+            if (distanceFromCenter < maxDistance * 0.4) {
+                pointsInBounds++;
+                totalProximity += (1 - (distanceFromCenter / (maxDistance * 0.4)));
+            }
+        });
+        
+        const proximityScore = (pointsInBounds / this.tracingPath.length) * 70;
+        
+        // Calculate final score
+        score = Math.min(100, Math.floor(lengthScore + proximityScore));
+        
+        document.getElementById('tracing-score').textContent = `Score: ${score}%`;
+        
+        const feedback = document.getElementById('tracing-feedback');
+        const starRating = document.getElementById('star-rating');
+        
+        // Show star rating
+        starRating.classList.remove('hidden');
+        
+        // Reset all stars
+        document.querySelectorAll('.star').forEach(star => {
+            star.classList.remove('earned');
+        });
+        
+        // Determine number of stars earned
+        let starsEarned = 0;
+        if (score >= 90) {
+            starsEarned = 3;
+            feedback.textContent = '🌟 Excellent! Great tracing! 🌟';
+            feedback.className = 'tracing-feedback excellent';
+        } else if (score >= 70) {
+            starsEarned = 2;
+            feedback.textContent = '👍 Good job! Keep practicing! 👍';
+            feedback.className = 'tracing-feedback good';
+        } else if (score >= 50) {
+            starsEarned = 1;
+            feedback.textContent = '💪 Keep trying! You can do it! 💪';
+            feedback.className = 'tracing-feedback needs-practice';
+        } else {
+            starsEarned = 0;
+            feedback.textContent = '🎯 Try tracing more carefully!';
+            feedback.className = 'tracing-feedback needs-practice';
+        }
+        
+        // Animate stars
+        const stars = document.querySelectorAll('.star');
+        for (let i = 0; i < starsEarned; i++) {
+            setTimeout(() => {
+                stars[i].classList.add('earned');
+            }, i * 200);
+        }
+        
+        this.tracingScores[this.currentTracingIndex] = score;
+    }
+
+    clearCanvas() {
+        const item = this.tracingItems[this.currentTracingIndex];
+        this.tracingPath = [];
+        this.drawLetterGuide(item);
+        document.getElementById('tracing-score').textContent = 'Score: 0%';
+        document.getElementById('tracing-feedback').textContent = '';
+        document.getElementById('tracing-feedback').className = 'tracing-feedback';
+        
+        // Hide and reset stars
+        const starRating = document.getElementById('star-rating');
+        starRating.classList.add('hidden');
+        document.querySelectorAll('.star').forEach(star => {
+            star.classList.remove('earned');
+        });
+    }
+
+    nextTracing() {
+        // Check if counting is required and complete
+        if (this.tracingMode === 'numbers' && !this.countingComplete) {
+            alert('Please count all the objects first by touching them!');
+            return;
+        }
+        
+        // Use last score or 0 if not scored yet
+        if (!this.tracingScores[this.currentTracingIndex]) {
+            this.tracingScores[this.currentTracingIndex] = 0;
+        }
+        
+        this.currentTracingIndex++;
+        this.loadTracingItem();
+    }
+
+    showTracingResults() {
+        const total = this.tracingScores.reduce((a, b) => a + b, 0);
+        const average = Math.round(total / this.tracingScores.length);
+        
+        const resultsSection = document.getElementById('tracing-results');
+        const resultsMessage = document.getElementById('tracing-results-message');
+        const resultsDetails = document.getElementById('tracing-results-details');
+        
+        let message = '';
+        if (average >= 90) {
+            message = '🎉 AMAZING! You\'re a tracing superstar! 🎉';
+        } else if (average >= 75) {
+            message = '🌟 Fantastic Work! Great tracing! 🌟';
+        } else if (average >= 60) {
+            message = '👍 Good Job! Keep practicing! 👍';
+        } else {
+            message = '💪 Nice Try! Practice makes perfect! 💪';
+        }
+        
+        resultsMessage.textContent = message;
+        resultsDetails.innerHTML = `
+            <p>📊 Average Score: ${average}%</p>
+            <p>✏️ Items Traced: ${this.tracingScores.length}</p>
+            <p>🎯 Mode: ${this.tracingMode === 'letters' ? 'Letters (A-Z)' : 'Numbers (0-9)'}</p>
+        `;
+        
+        resultsSection.classList.remove('hidden');
+        document.getElementById('next-tracing').style.display = 'none';
+        document.getElementById('start-tracing').style.display = 'inline-block';
+        
+        // Save to history
+        const sessionData = {
+            mode: this.tracingMode,
+            items: this.tracingItems,
+            scores: this.tracingScores
+        };
+        
+        this.saveSession(
+            `Tracing ${this.tracingMode === 'letters' ? 'Letters' : 'Numbers'}`,
+            [sessionData],
+            [{ userAnswer: average, correctAnswer: 100, isCorrect: average >= 80 }],
+            average >= 80 ? 1 : 0,
+            average >= 80 ? 0 : 1
+        );
     }
 
     // Session History Methods

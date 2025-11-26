@@ -26,13 +26,12 @@
                 <p class="subtitle">Climb to the top by solving all the problems!</p>
             </header>
 
-            <!-- Tab Navigation -->
-            <div class="tab-navigation">
-                <button class="tab-button active" data-tab="mountains">🏔️ Math Mountains</button>
-                <button class="tab-button" data-tab="word-problems">📖 Word Problems</button>
-            </div>
-
-        <!-- Math Mountains Tab -->
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="mountains">🏔️ Math Mountains</button>
+            <button class="tab-button" data-tab="word-problems">📖 Word Problems</button>
+            <button class="tab-button" data-tab="tracing">✏️ Tracing Fun</button>
+        </div>        <!-- Math Mountains Tab -->
         <div id="mountains-tab" class="tab-content active">
         <!-- Top Controls -->
         <div class="controls-panel top-controls">
@@ -127,6 +126,75 @@
             </div>
         </div>
         <!-- End Word Problems Tab -->
+
+        <!-- Tracing Tab -->
+        <div id="tracing-tab" class="tab-content">
+            <!-- Tracing Controls -->
+            <div class="controls-panel top-controls">
+                <div class="control-group">
+                    <label for="tracing-mode">What to Trace:</label>
+                    <select id="tracing-mode" class="difficulty-select">
+                        <option value="letters">🔤 Letters (A-Z)</option>
+                        <option value="numbers">🔢 Numbers (0-9)</option>
+                    </select>
+                </div>
+
+                <button id="start-tracing" class="btn btn-generate">🎨 Start Tracing!</button>
+                <button id="next-tracing" class="btn btn-check" style="display:none;">➡️ Next</button>
+            </div>
+
+            <!-- Tracing Canvas Area -->
+            <div class="tracing-container">
+                <div class="tracing-header">
+                    <h2 id="current-letter" class="current-letter">A</h2>
+                    <div class="tracing-progress">
+                        <span id="tracing-score">Score: 0%</span>
+                        <span id="tracing-counter">Letter 1 of 26</span>
+                    </div>
+                </div>
+
+                <!-- Animal/Object Picture -->
+                <div id="tracing-picture" class="tracing-picture">
+                    <div class="picture-content">
+                        <span class="picture-emoji">🍎</span>
+                        <span class="picture-label">Apple</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Counting Area (for numbers) -->
+                <div id="counting-area" class="counting-area" style="display:none;">
+                    <p class="counting-instruction">Touch all the <span id="count-target">5</span> objects!</p>
+                    <div id="counting-objects" class="counting-objects"></div>
+                    <div class="counting-result">
+                        <span id="counting-feedback"></span>
+                    </div>
+                </div>
+
+                <!-- Canvas for Tracing -->
+                <div class="canvas-wrapper">
+                    <canvas id="tracing-canvas" width="800" height="400"></canvas>
+                    <button id="clear-trace" class="btn-clear-trace">🗑️ Clear & Try Again</button>
+                </div>
+
+                <!-- Tracing Feedback -->
+                <div id="tracing-feedback" class="tracing-feedback"></div>
+                
+                <!-- Star Rating -->
+                <div id="star-rating" class="star-rating hidden">
+                    <div class="star" data-star="1">⭐</div>
+                    <div class="star" data-star="2">⭐</div>
+                    <div class="star" data-star="3">⭐</div>
+                </div>
+            </div>
+
+            <!-- Tracing Session Summary -->
+            <div id="tracing-results" class="results-section hidden">
+                <h2 id="tracing-results-message"></h2>
+                <div id="tracing-results-details"></div>
+                <button id="restart-tracing" class="btn btn-generate">🔄 Start Over</button>
+            </div>
+        </div>
+        <!-- End Tracing Tab -->
         </div>
         <!-- End Main Content -->
     </div>
